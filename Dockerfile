@@ -19,15 +19,15 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     dosfstools \
     zip
 
-WORKDIR /home/docker/actions-runner
+WORKDIR /opt/actions-runner
 
 # download and unzip the github actions runner
 RUN curl -O -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz \
     && tar xf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz \
-    && DEBIAN_FRONTEND=noninteractive /home/docker/actions-runner/bin/installdependencies.sh \
-    && chown -R docker ~docker
+    && DEBIAN_FRONTEND=noninteractive /opt/actions-runner/bin/installdependencies.sh \
+    && chown -R docker /opt
 
-WORKDIR /home/docker
+WORKDIR /opt
 
 COPY start.sh start.sh
 
@@ -40,6 +40,8 @@ RUN curl -L -O https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2
     && tar -xf gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 \
     && rm gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2
 
-ENV PATH $PATH:/home/docker/gcc-arm-none-eabi-9-2020-q2-update/bin
+ENV PATH $PATH:/opt/gcc-arm-none-eabi-9-2020-q2-update/bin
+
+VOLUME /opt/actions-runner
 
 ENTRYPOINT ["./start.sh"]

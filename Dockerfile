@@ -8,13 +8,16 @@ RUN apt-get update -y \
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     curl \
+    git \
     jq \
     build-essential \
     gcc \
     make \
     openjdk-8-jdk-headless \
     ant \
-    mtools
+    mtools \
+    dosfstools \
+    zip
 
 WORKDIR /home/docker/actions-runner
 

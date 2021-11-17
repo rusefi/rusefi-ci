@@ -15,7 +15,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     make \
     openjdk-8-jdk-headless \
     ant \
-    mtools
+    mtools \
+    dosfstools \
+    zip
 
 WORKDIR /home/docker/actions-runner
 

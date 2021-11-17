@@ -10,6 +10,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     curl \
     jq \
     build-essential \
+    git \
     gcc \
     make \
     openjdk-8-jdk-headless \

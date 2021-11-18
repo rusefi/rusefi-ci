@@ -17,7 +17,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ant \
     mtools \
     dosfstools \
-    zip
+    zip \
+    xxd
 
 WORKDIR /opt/actions-runner
 

@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:21.04
 
 ARG RUNNER_VERSION="2.284.0"
 
@@ -18,7 +18,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     mtools \
     dosfstools \
     zip \
-    xxd
+    xxd \
+    usbutils \
+    openocd
 
 WORKDIR /opt/actions-runner
 

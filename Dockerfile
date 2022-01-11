@@ -1,12 +1,33 @@
-FROM ubuntu:21.04
+FROM ubuntu:21.04 AS builder
 
 ARG RUNNER_VERSION="2.284.0"
 
-RUN apt-get update -y \
-    && apt-get upgrade -y \
-    && useradd -m docker
+WORKDIR /build
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+COPY start.sh /opt/start.sh
+
+ADD https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz /build/
+
+ADD https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 /build/
+
+RUN apt-get update &&\
+    apt-get install bzip2 &&\
+    mkdir -p /opt/actions-runner &&\
+    tar -xf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz -C /opt/actions-runner/ &&\
+    tar -xf gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 &&\
+    chmod +x /opt/start.sh
+
+
+
+FROM ubuntu:21.04 AS actions-runer
+
+COPY --from=builder /opt /opt
+COPY --from=builder /build/gcc-arm-none-eabi-9-2020-q2-update/bin /bin
+
+RUN useradd -m docker &&\
+    apt-get update -y &&\
+    DEBIAN_FRONTEND=noninteractive /opt/actions-runner/bin/installdependencies.sh && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     curl \
     jq \
     build-essential \
@@ -20,30 +41,13 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     zip \
     xxd \
     usbutils \
-    openocd
-
-WORKDIR /opt/actions-runner
-
-# download and unzip the github actions runner
-RUN curl -O -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz \
-    && tar xf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz \
-    && DEBIAN_FRONTEND=noninteractive /opt/actions-runner/bin/installdependencies.sh \
-    && chown -R docker /opt
+    openocd \
+    && apt-get autoremove -y && apt-get clean -y &&\
+    chown -R docker /opt
 
 WORKDIR /opt
 
-COPY start.sh start.sh
-
-RUN chmod +x start.sh
-
 USER docker
-
-# download and extract gcc arm compiler
-RUN curl -L -O https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 \
-    && tar -xf gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 \
-    && rm gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2
-
-ENV PATH $PATH:/opt/gcc-arm-none-eabi-9-2020-q2-update/bin
 
 VOLUME /opt/actions-runner
 

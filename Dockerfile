@@ -24,7 +24,7 @@ FROM ubuntu:22.04 AS actions-runer
 COPY --from=builder /opt /opt
 COPY --from=builder /build/gcc-arm-none-eabi-9-2020-q2-update/bin /bin
 
-RUN useradd -m docker &&\
+RUN useradd -m -g sudo docker &&\
     apt-get update -y &&\
     DEBIAN_FRONTEND=noninteractive /opt/actions-runner/bin/installdependencies.sh && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -42,7 +42,9 @@ RUN useradd -m docker &&\
     xxd \
     usbutils \
     openocd \
+    sudo \
     && apt-get autoremove -y && apt-get clean -y &&\
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     chown -R docker /opt
 
 WORKDIR /opt

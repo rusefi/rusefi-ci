@@ -1,6 +1,6 @@
-FROM ubuntu:21.04 AS builder
+FROM ubuntu:22.04 AS builder
 
-ARG RUNNER_VERSION="2.284.0"
+ARG RUNNER_VERSION="2.301.1"
 
 WORKDIR /build
 
@@ -19,7 +19,7 @@ RUN apt-get update &&\
 
 
 
-FROM ubuntu:21.04 AS actions-runer
+FROM ubuntu:22.04 AS actions-runer
 
 COPY --from=builder /opt /opt
 COPY --from=builder /build/gcc-arm-none-eabi-9-2020-q2-update/bin /bin

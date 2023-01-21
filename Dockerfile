@@ -45,6 +45,7 @@ RUN useradd -m -g sudo docker &&\
     sudo \
     ruby-rubygems \
     time \
+    lsb-release \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     chown -R docker /opt

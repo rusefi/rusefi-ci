@@ -43,6 +43,8 @@ RUN useradd -m -g sudo docker &&\
     usbutils \
     openocd \
     sudo \
+    ruby-rubygems \
+    time \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     chown -R docker /opt

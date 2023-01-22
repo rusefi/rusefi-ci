@@ -8,13 +8,13 @@ COPY start.sh /opt/start.sh
 
 ADD https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz /build/
 
-ADD https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 /build/
+ADD https://github.com/rusefi/build_support/raw/master/rusefi-arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi.tar.xz /build/
 
 RUN apt-get update &&\
-    apt-get install bzip2 &&\
+    apt-get install xz-utils &&\
     mkdir -p /opt/actions-runner &&\
     tar -xf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz -C /opt/actions-runner/ &&\
-    tar -xf gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 &&\
+    tar -xf rusefi-arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi.tar.xz &&\
     chmod +x /opt/start.sh
 
 
@@ -22,7 +22,7 @@ RUN apt-get update &&\
 FROM ubuntu:22.04 AS actions-runer
 
 COPY --from=builder /opt /opt
-COPY --from=builder /build/gcc-arm-none-eabi-9-2020-q2-update/bin /bin
+COPY --from=builder /build/arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-eabi/bin /bin
 
 RUN useradd -m -g sudo docker &&\
     apt-get update -y &&\
@@ -48,6 +48,7 @@ RUN useradd -m -g sudo docker &&\
     lsb-release \
     wget \
     file \
+    netbase \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90forceyes &&\

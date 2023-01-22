@@ -47,6 +47,7 @@ RUN useradd -m -g sudo docker &&\
     time \
     lsb-release \
     wget \
+    file \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90forceyes &&\

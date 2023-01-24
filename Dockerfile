@@ -8,7 +8,7 @@ COPY start.sh /opt/start.sh
 
 ADD https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz /build/
 
-ADD https://raw.githubusercontent.com/chuckwagoncomputing/rusefi/dl-toolkit/firmware/provide_gcc.sh /build/
+ADD https://raw.githubusercontent.com/rusefi/rusefi/master/firmware/provide_gcc.sh /build/
 
 RUN apt-get update &&\
     apt-get -y install curl xz-utils &&\
@@ -24,7 +24,14 @@ FROM ubuntu:22.04 AS actions-runer
 COPY --from=builder /opt /opt
 COPY --from=builder /tmp/rusefi-provide_gcc /tmp/rusefi-provide_gcc
 
+ENV JAVA_HOME /usr/lib/jvm/temurin-11-jdk-amd64/
+
 RUN useradd -m -g sudo docker &&\
+    apt-get update -y &&\
+    apt-get install -y wget gpg &&\
+    wget -O key.gpg https://packages.adoptium.net/artifactory/api/gpg/key/public &&\
+    gpg --dearmor -o /usr/share/keyrings/adoptium.gpg key.gpg &&\
+    echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" >/etc/apt/sources.list.d/adoptium.list &&\
     apt-get update -y &&\
     DEBIAN_FRONTEND=noninteractive /opt/actions-runner/bin/installdependencies.sh && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -46,7 +53,6 @@ RUN useradd -m -g sudo docker &&\
     ruby-rubygems \
     time \
     lsb-release \
-    wget \
     file \
     netbase \
     gcc-multilib \
@@ -62,11 +68,13 @@ RUN useradd -m -g sudo docker &&\
     python3-tk \
     scour \
     librsvg2-bin \
+    temurin-11-jdk \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90forceyes &&\
     chown -R docker /opt &&\
-    chown -R docker /tmp/rusefi-provide_gcc
+    chown -R docker /tmp/rusefi-provide_gcc &&\
+    update-alternatives --set java /usr/lib/jvm/temurin-11-jdk-amd64/bin/java
 
 WORKDIR /opt
 

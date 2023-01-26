@@ -26,7 +26,7 @@ COPY --from=builder /tmp/rusefi-provide_gcc /tmp/rusefi-provide_gcc
 
 ENV JAVA_HOME /usr/lib/jvm/temurin-11-jdk-amd64/
 
-RUN useradd -m -g sudo docker &&\
+RUN useradd -m -g sudo -u 1001 docker &&\
     apt-get update -y &&\
     apt-get install -y wget gpg &&\
     wget -O key.gpg https://packages.adoptium.net/artifactory/api/gpg/key/public &&\
@@ -69,6 +69,8 @@ RUN useradd -m -g sudo docker &&\
     scour \
     librsvg2-bin \
     temurin-11-jdk \
+    uidmap \
+    supervisor \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90forceyes &&\
@@ -76,10 +78,28 @@ RUN useradd -m -g sudo docker &&\
     chown -R docker /tmp/rusefi-provide_gcc &&\
     update-alternatives --set java /usr/lib/jvm/temurin-11-jdk-amd64/bin/java
 
+# Install Docker CLI
+RUN curl -fsSL https://get.docker.com -o- | sh && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
+
+# Install Docker-Compose
+RUN curl -L -o /usr/local/bin/docker-compose \
+    "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" && \
+    chmod +x /usr/local/bin/docker-compose
+
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf &&\
+    chmod u-s /usr/bin/newuidmap &&\
+    chmod u-s /usr/bin/newgidmap
+
 WORKDIR /opt
 
 USER docker
 
+RUN dockerd-rootless-setuptool.sh install
+
 VOLUME /opt/actions-runner
 
 ENTRYPOINT ["./start.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

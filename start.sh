@@ -1,5 +1,14 @@
 #!/bin/bash
 
+if [[ "$@" == "bash" ]]; then
+    exec $@
+fi
+
+export XDG_RUNTIME_DIR=$HOME/.docker/xrd
+rm -rf $XDG_RUNTIME_DIR
+mkdir -p $XDG_RUNTIME_DIR
+PATH=/usr/bin:/sbin:/usr/sbin:$PATH dockerd-rootless.sh
+
 cd /opt/actions-runner
 
 if [[ -z $RUNNER_NAME ]]; then
@@ -70,4 +79,4 @@ else
         --unattended
 fi
 
-./run.sh & wait $!
+exec "$@"

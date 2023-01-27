@@ -75,7 +75,7 @@ RUN groupadd docker -g $GID &&\
     uidmap \
     supervisor \
     iproute2 \
-    openssh \
+    openssh-client \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90forceyes &&\

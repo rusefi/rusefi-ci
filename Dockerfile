@@ -26,7 +26,10 @@ COPY --from=builder /tmp/rusefi-provide_gcc /tmp/rusefi-provide_gcc
 
 ENV JAVA_HOME /usr/lib/jvm/temurin-11-jdk-amd64/
 
-RUN useradd -m -g sudo -u 1001 docker &&\
+ARG GID=1000
+
+RUN groupadd docker -g $GID &&\
+    useradd -m -g docker -G sudo docker &&\
     apt-get update -y &&\
     apt-get install -y wget gpg &&\
     wget -O key.gpg https://packages.adoptium.net/artifactory/api/gpg/key/public &&\
@@ -71,6 +74,8 @@ RUN useradd -m -g sudo -u 1001 docker &&\
     temurin-11-jdk \
     uidmap \
     supervisor \
+    iproute2 \
+    openssh \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90forceyes &&\
@@ -89,9 +94,7 @@ RUN curl -L -o /usr/local/bin/docker-compose \
     chmod +x /usr/local/bin/docker-compose
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf &&\
-    chmod u-s /usr/bin/newuidmap &&\
-    chmod u-s /usr/bin/newgidmap
+RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf
 
 WORKDIR /opt
 

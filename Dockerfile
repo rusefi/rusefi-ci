@@ -8,13 +8,13 @@ COPY start.sh /opt/start.sh
 
 ADD https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz /build/
 
-ADD https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 /build/
+ADD https://raw.githubusercontent.com/rusefi/rusefi/master/firmware/provide_gcc.sh /build/
 
 RUN apt-get update &&\
-    apt-get install bzip2 &&\
+    apt-get -y install curl xz-utils &&\
     mkdir -p /opt/actions-runner &&\
     tar -xf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz -C /opt/actions-runner/ &&\
-    tar -xf gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2 &&\
+    bash provide_gcc.sh &&\
     chmod +x /opt/start.sh
 
 
@@ -22,9 +22,16 @@ RUN apt-get update &&\
 FROM ubuntu:22.04 AS actions-runer
 
 COPY --from=builder /opt /opt
-COPY --from=builder /build/gcc-arm-none-eabi-9-2020-q2-update/bin /bin
+COPY --from=builder /tmp/rusefi-provide_gcc /tmp/rusefi-provide_gcc
+
+ENV JAVA_HOME /usr/lib/jvm/temurin-11-jdk-amd64/
 
 RUN useradd -m -g sudo docker &&\
+    apt-get update -y &&\
+    apt-get install -y wget gpg &&\
+    wget -O key.gpg https://packages.adoptium.net/artifactory/api/gpg/key/public &&\
+    gpg --dearmor -o /usr/share/keyrings/adoptium.gpg key.gpg &&\
+    echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" >/etc/apt/sources.list.d/adoptium.list &&\
     apt-get update -y &&\
     DEBIAN_FRONTEND=noninteractive /opt/actions-runner/bin/installdependencies.sh && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -46,11 +53,28 @@ RUN useradd -m -g sudo docker &&\
     ruby-rubygems \
     time \
     lsb-release \
-    wget \
+    file \
+    netbase \
+    gcc-multilib \
+    g++-multilib \
+    g++-mingw-w64 \
+    gcc-mingw-w64 \
+    sshpass \
+    doxygen \
+    graphviz \
+    lcov \
+    valgrind \
+    python3-pip \
+    python3-tk \
+    scour \
+    librsvg2-bin \
+    temurin-11-jdk \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90forceyes &&\
-    chown -R docker /opt
+    chown -R docker /opt &&\
+    chown -R docker /tmp/rusefi-provide_gcc &&\
+    update-alternatives --set java /usr/lib/jvm/temurin-11-jdk-amd64/bin/java
 
 WORKDIR /opt
 

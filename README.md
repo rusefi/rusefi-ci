@@ -9,7 +9,7 @@ To run, first build the image with:
 Then run the newly built image.
 
 ```bash
-docker run --detach \
+docker run --detach --privileged \
     -e RUNNER_NAME=test-runner2 \
     -e RUNNER_LABELS=ubuntu-latest \
     -e GITHUB_ACCESS_TOKEN=<Personal Access Token> \

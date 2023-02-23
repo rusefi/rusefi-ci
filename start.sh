@@ -4,6 +4,8 @@ if [[ "$@" == "bash" ]]; then
     exec $@
 fi
 
+ulimit -n 1024
+
 export XDG_RUNTIME_DIR=$HOME/.docker/run
 export DOCKER_HOST=unix:///home/docker/.docker/run/docker.sock
 rm -rf $XDG_RUNTIME_DIR

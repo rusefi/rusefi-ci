@@ -59,12 +59,13 @@ ghatoken ()
  read TOKEN
  KEY=$(echo "$TOKEN" | openssl enc -aes-256-cbc -a | tr -d '\n')
  perl -pi -e 's#(?<=TOKEN=\$\(echo\s").*?(?="\s\|)#'"$KEY"'#' $(realpath ~/.bashrc)
+ bash
 }
 
 gha ()
 {
-  TOKEN=$(echo "U2FsdGVkX1/bq53NjBMtWxIiCE0gzVtrqzPjgAlyPziyVcc3OCkF0HUrg1LcMTfb74Yrs7p2HBmISrqYSOZF2B1jZ1y6hvF4I7/GyXUFFTKMTg7gjJCfjJwo0ShFTGBqan/xWZiZKqIUsrHPN5V3EA==" | openssl enc -aes-256-cbc -a -d)
-  docker run -it --privileged -e RUNNER_NAME=runner-$1 -e RUNNER_LABELS=ubuntu-latest -e GITHUB_ACCESS_TOKEN="$TOKEN" -e RUNNER_REPOSITORY_URL=https://github.com/<github user>/rusefi rusefi-ci
+  if ! TOKEN=$(echo "" | openssl enc -aes-256-cbc -a -d); then echo "Error encoding token"; return 1; fi
+  docker run -it --privileged -e RUNNER_NAME=runner-$1 -e RUNNER_LABELS=ubuntu-latest -e GITHUB_ACCESS_TOKEN="$TOKEN" -e RUNNER_REPOSITORY_URL=https://github.com/chuckwagoncomputing/rusefi rusefi-ci
 }
 ```
 

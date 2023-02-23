@@ -40,7 +40,7 @@ The following environment variables allows you to control the configuration para
 
 In order to link your runner to your repository/organization, you need to provide a token. There is two way of passing the token :
 
-* via `GITHUB_ACCESS_TOKEN` (recommended), containing a [Personnal Access Token](https://github.com/settings/tokens). This token will be used to dynamically fetch a new runner token, as runner tokens are valid for a short period of time.
-  * For a single-repository runner, your PAT should have `repo` scopes.
-  * For an organization runner, your PAT should have `admin:org` scopes.
+* via `GITHUB_ACCESS_TOKEN` (recommended), containing a [fine-grained Personnal Access Token](https://github.com/settings/tokens). This token will be used to dynamically fetch a new runner token, as runner tokens are valid for a short period of time.
+  * For a single-repository runner, select the repository under "Only select repositories", then under "Repository Permissions" set "Administration" to read-write.
+  * For an organization runner, select the repository and set "Organization self hosted runners"to read-write.
 * via `RUNNER_TOKEN`. This token is displayed in the Actions settings page of your organization/repository, when opening the "Add Runner" page.

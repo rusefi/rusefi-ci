@@ -13,9 +13,12 @@ docker run --detach --privileged \
     -e RUNNER_NAME=test-runner2 \
     -e RUNNER_LABELS=ubuntu-latest \
     -e GITHUB_ACCESS_TOKEN=<Personal Access Token> \
-    -e RUNNER_REPOSITORY_URL=https://github.com/ZHoob2004/rusefi \
+    -e RUNNER_REPOSITORY_URL=https://github.com/<github user>/rusefi \
     rusefi-ci
 ```
+Replace `<github user>` with your own username if you are running on your own fork.
+If you are running an organization-level runner, you will need to replace `RUNNER_REPOSITORY_URL` with `RUNNER_ORGANIZATION_URL`.
+
 
 Add `--restart=unless-stopped` in order to have the container survive reboots
 

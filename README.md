@@ -44,3 +44,28 @@ In order to link your runner to your repository/organization, you need to provid
   * For a single-repository runner, select the repository under "Only select repositories", then under "Repository Permissions" set "Administration" to read-write.
   * For an organization runner, select the repository and set "Organization self hosted runners"to read-write.
 * via `RUNNER_TOKEN`. This token is displayed in the Actions settings page of your organization/repository, when opening the "Add Runner" page.
+
+## Helper Functions
+
+If you stop and start workes often, you may find it useful to have a function for starting workers. I have added the below functions to my .bashrc:
+
+```bash
+ghatoken ()
+{
+ echo -n "Paste token:"
+ read TOKEN
+ KEY=$(echo "$TOKEN" | openssl enc -aes-256-cbc -a | tr -d '\n')
+ perl -pi -e 's#(?<=KEY=").*?(?="\sd)#'"$KEY"'#' ~/.bashrc
+}
+
+gha ()
+{
+  KEY="" docker run -it --privileged -e RUNNER_NAME=runner-$1 -e RUNNER_LABELS=ubuntu-latest -e GITHUB_ACCESS_TOKEN=$(echo "$KEY" | openssl enc -aes-256-cbc -a -d) -e RUNNER_REPOSITORY_URL=https://github.com/<github user>/rusefi rusefi-ci
+}
+```
+
+Replace `<github user>` with your own username if you are running on your own fork.
+If you are running an organization-level runner, you will need to replace `RUNNER_REPOSITORY_URL` with `RUNNER_ORGANIZATION_URL`.
+
+Once the functions are in your .bashrc, and you have sourced your .bashrc, by opening a new shell or by running `. ~/.bashrc`,
+run `ghatoken`, paste in your PAT, and enter a password. This password will be used every time you start a runner.

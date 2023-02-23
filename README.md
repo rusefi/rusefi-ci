@@ -72,3 +72,6 @@ If you are running an organization-level runner, you will need to replace `RUNNE
 
 Once the functions are in your .bashrc, and you have sourced your .bashrc, by opening a new shell or by running `. ~/.bashrc`,
 run `ghatoken`, paste in your PAT, and enter a password. This password will be used every time you start a runner.
+
+After you have run `ghatoken`, you can now start runners with `gha <id>`. I use sequential ids, e.g. `gha 1`, `gha 2`, etc,
+but you may name them however you like.

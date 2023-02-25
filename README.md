@@ -65,7 +65,13 @@ ghatoken ()
 gha ()
 {
   if ! TOKEN=$(echo "" | openssl enc -aes-256-cbc -a -d -pbkdf2 ); then echo "Error encoding token"; return 1; fi
-  docker run -it --privileged -e RUNNER_NAME=runner-$1 -e RUNNER_LABELS=ubuntu-latest -e GITHUB_ACCESS_TOKEN="$TOKEN" -e RUNNER_REPOSITORY_URL=https://github.com/chuckwagoncomputing/rusefi rusefi-ci
+  NAME="runner-$1"
+  IMAGE_HASH=$(docker image inspect rusefi-ci --format "{{.Id}}" 2>/dev/null)
+  if CONTAINER_HASH=$(docker container inspect $NAME --format "{{.Image}}" 2>/dev/null) && [ "$IMAGE_HASH" = "$CONTAINER_HASH" ]; then
+    docker start -i "$NAME"
+  else
+    docker run -it --privileged -e RUNNER_NAME="$NAME" -e RUNNER_LABELS=ubuntu-latest -e GITHUB_ACCESS_TOKEN="$TOKEN" -e RUNNER_REPOSITORY_URL=https://github.com/<github user>/rusefi --name $NAME rusefi-ci
+  fi
 }
 ```
 

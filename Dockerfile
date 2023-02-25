@@ -1,6 +1,6 @@
 FROM ubuntu:22.04 AS builder
 
-ARG RUNNER_VERSION="2.301.1"
+ARG RUNNER_VERSION="2.302.1"
 
 WORKDIR /build
 

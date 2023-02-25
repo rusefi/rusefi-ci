@@ -83,3 +83,5 @@ run `ghatoken`, paste in your PAT, and enter a password. This password will be u
 
 After you have run `ghatoken`, you can now start runners with `gha <id>`. I use sequential ids, e.g. `gha 1`, `gha 2`, etc,
 but you may name them however you like.
+
+Note that these helper functions start the runner in interactive mode. If you prefer, you can remove the `-i` in `docker start -i` and replace the `-it` in `docker run -it` with `--detach`.

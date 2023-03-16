@@ -31,7 +31,7 @@ ARG GID=1000
 RUN groupadd docker -g $GID &&\
     useradd -m -g docker -G sudo docker &&\
     apt-get update -y &&\
-    apt-get install -y wget gpg &&\
+    apt-get install -y wget gpg software-properties-common &&\
     wget -O key.gpg https://packages.adoptium.net/artifactory/api/gpg/key/public &&\
     gpg --dearmor -o /usr/share/keyrings/adoptium.gpg key.gpg &&\
     echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" >/etc/apt/sources.list.d/adoptium.list &&\
@@ -77,7 +77,6 @@ RUN groupadd docker -g $GID &&\
     supervisor \
     iproute2 \
     openssh-client \
-    software-properties-common \
     kicad \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\

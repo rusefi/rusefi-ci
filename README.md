@@ -4,18 +4,21 @@ This dockerfile will automatically download and configure the github actions sel
 
 To run, first build the image with:
 
-`docker build -t rusefi-ci .`
+`docker build --build-arg GID=$(getent group docker | cut -d ':' -f 3) -t rusefi-ci .`
 
 Then run the newly built image.
 
 ```bash
-docker run --detach \
+docker run --detach --privileged \
     -e RUNNER_NAME=test-runner2 \
     -e RUNNER_LABELS=ubuntu-latest \
     -e GITHUB_ACCESS_TOKEN=<Personal Access Token> \
-    -e RUNNER_REPOSITORY_URL=https://github.com/ZHoob2004/rusefi \
+    -e RUNNER_REPOSITORY_URL=https://github.com/<github user>/rusefi \
     rusefi-ci
 ```
+Replace `<github user>` with your own username if you are running on your own fork.
+If you are running an organization-level runner, you will need to replace `RUNNER_REPOSITORY_URL` with `RUNNER_ORGANIZATION_URL`.
+
 
 Add `--restart=unless-stopped` in order to have the container survive reboots
 
@@ -40,7 +43,48 @@ The following environment variables allows you to control the configuration para
 
 In order to link your runner to your repository/organization, you need to provide a token. There is two way of passing the token :
 
-* via `GITHUB_ACCESS_TOKEN` (recommended), containing a [Personnal Access Token](https://github.com/settings/tokens). This token will be used to dynamically fetch a new runner token, as runner tokens are valid for a short period of time.
-  * For a single-repository runner, your PAT should have `repo` scopes.
-  * For an organization runner, your PAT should have `admin:org` scopes.
+* via `GITHUB_ACCESS_TOKEN` (recommended), containing a [fine-grained Personnal Access Token](https://github.com/settings/tokens). This token will be used to dynamically fetch a new runner token, as runner tokens are valid for a short period of time.
+  * For a single-repository runner, select the repository under "Only select repositories", then under "Repository Permissions" set "Administration" to read-write.
+  * For an organization runner, select the repository and set "Organization self hosted runners"to read-write.
 * via `RUNNER_TOKEN`. This token is displayed in the Actions settings page of your organization/repository, when opening the "Add Runner" page.
+
+## Helper Functions
+
+If you stop and start workes often, you may find it useful to have a function for starting workers. I have added the below functions to my .bashrc:
+
+```bash
+ghatoken ()
+{
+ echo -n "Paste token:"
+ read TOKEN
+ KEY=$(echo "$TOKEN" | openssl enc -aes-256-cbc -a -pbkdf2 | tr -d '\n')
+ perl -pi -e 's#(?<=TOKEN=\$\(echo\s").*?(?="\s\|)#'"$KEY"'#' $(realpath ~/.bashrc)
+ bash
+}
+
+gha ()
+{
+  if ! TOKEN=$(echo "" | openssl enc -aes-256-cbc -a -d -pbkdf2 ); then echo "Error encoding token"; return 1; fi
+  NAME="runner-$1"
+  IMAGE_HASH=$(docker image inspect rusefi-ci --format "{{.Id}}" 2>/dev/null)
+  if CONTAINER_HASH=$(docker container inspect $NAME --format "{{.Image}}" 2>/dev/null) && [ "$IMAGE_HASH" = "$CONTAINER_HASH" ]; then
+    docker start -i "$NAME"
+  else
+    if docker container inspect "$NAME" >/dev/null 2>/dev/null; then
+      docker rm "$NAME"
+    fi
+    docker run -it --privileged -e RUNNER_NAME="$NAME" -e RUNNER_LABELS=ubuntu-latest -e GITHUB_ACCESS_TOKEN="$TOKEN" -e RUNNER_REPOSITORY_URL=https://github.com/<github user>/rusefi --name $NAME rusefi-ci
+  fi
+}
+```
+
+Replace `<github user>` with your own username if you are running on your own fork.
+If you are running an organization-level runner, you will need to replace `RUNNER_REPOSITORY_URL` with `RUNNER_ORGANIZATION_URL`.
+
+Once the functions are in your .bashrc, and you have sourced your .bashrc, by opening a new shell or by running `. ~/.bashrc`,
+run `ghatoken`, paste in your PAT, and enter a password. This password will be used every time you start a runner.
+
+After you have run `ghatoken`, you can now start runners with `gha <id>`. I use sequential ids, e.g. `gha 1`, `gha 2`, etc,
+but you may name them however you like.
+
+Note that these helper functions start the runner in interactive mode. If you prefer, you can remove the `-i` in `docker start -i` and replace the `-it` in `docker run -it` with `--detach`.

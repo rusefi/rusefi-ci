@@ -1,6 +1,6 @@
 FROM ubuntu:22.04 AS builder
 
-ARG RUNNER_VERSION="2.301.1"
+ARG RUNNER_VERSION="2.312.0"
 
 WORKDIR /build
 
@@ -22,16 +22,20 @@ RUN apt-get update &&\
 FROM ubuntu:22.04 AS actions-runer
 
 COPY --from=builder /opt /opt
-COPY --from=builder /tmp/rusefi-provide_gcc /tmp/rusefi-provide_gcc
+COPY --from=builder /tmp/rusefi-provide_gcc12 /tmp/rusefi-provide_gcc12
 
 ENV JAVA_HOME /usr/lib/jvm/temurin-11-jdk-amd64/
 
-RUN useradd -m -g sudo docker &&\
+ARG GID=1000
+
+RUN groupadd docker -g $GID &&\
+    useradd -m -g docker -G sudo docker &&\
     apt-get update -y &&\
-    apt-get install -y wget gpg &&\
+    apt-get install -y wget gpg software-properties-common &&\
     wget -O key.gpg https://packages.adoptium.net/artifactory/api/gpg/key/public &&\
     gpg --dearmor -o /usr/share/keyrings/adoptium.gpg key.gpg &&\
     echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" >/etc/apt/sources.list.d/adoptium.list &&\
+    add-apt-repository --yes ppa:kicad/kicad-7.0-releases &&\
     apt-get update -y &&\
     DEBIAN_FRONTEND=noninteractive /opt/actions-runner/bin/installdependencies.sh && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -41,6 +45,7 @@ RUN useradd -m -g sudo docker &&\
     git \
     gcc \
     make \
+    cmake \
     openjdk-8-jdk-headless \
     ant \
     mtools \
@@ -69,17 +74,38 @@ RUN useradd -m -g sudo docker &&\
     scour \
     librsvg2-bin \
     temurin-11-jdk \
+    uidmap \
+    supervisor \
+    iproute2 \
+    openssh-client \
+    kicad \
     && apt-get autoremove -y && apt-get clean -y &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90forceyes &&\
     chown -R docker /opt &&\
-    chown -R docker /tmp/rusefi-provide_gcc &&\
+    chown -R docker /tmp/rusefi-provide_gcc12 &&\
     update-alternatives --set java /usr/lib/jvm/temurin-11-jdk-amd64/bin/java
+
+# Install Docker CLI
+RUN curl -fsSL https://get.docker.com -o- | sh && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
+
+# Install Docker-Compose
+RUN curl -L -o /usr/local/bin/docker-compose \
+    "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" && \
+    chmod +x /usr/local/bin/docker-compose
+
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf
 
 WORKDIR /opt
 
 USER docker
 
+RUN dockerd-rootless-setuptool.sh install
+
 VOLUME /opt/actions-runner
 
 ENTRYPOINT ["./start.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

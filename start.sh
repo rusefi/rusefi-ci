@@ -1,5 +1,17 @@
 #!/bin/bash
 
+if [[ "$@" == "bash" ]]; then
+    exec $@
+fi
+
+ulimit -n 1024
+
+export XDG_RUNTIME_DIR=$HOME/.docker/run
+export DOCKER_HOST=unix:///home/docker/.docker/run/docker.sock
+rm -rf $XDG_RUNTIME_DIR
+mkdir -p $XDG_RUNTIME_DIR
+PATH=/usr/bin:/sbin:/usr/sbin:$PATH dockerd-rootless.sh >/opt/docker.log 2>/opt/docker.log &
+
 cd /opt/actions-runner
 
 if [[ -z $RUNNER_NAME ]]; then
@@ -70,4 +82,4 @@ else
         --unattended
 fi
 
-./run.sh & wait $!
+exec "$@"

@@ -1,6 +1,6 @@
 FROM ubuntu:22.04 AS builder
 
-ARG RUNNER_VERSION="2.302.1"
+ARG RUNNER_VERSION="2.312.0"
 
 WORKDIR /build
 
@@ -22,7 +22,7 @@ RUN apt-get update &&\
 FROM ubuntu:22.04 AS actions-runer
 
 COPY --from=builder /opt /opt
-COPY --from=builder /tmp/rusefi-provide_gcc /tmp/rusefi-provide_gcc
+COPY --from=builder /tmp/rusefi-provide_gcc12 /tmp/rusefi-provide_gcc12
 
 ENV JAVA_HOME /usr/lib/jvm/temurin-11-jdk-amd64/
 
@@ -45,6 +45,7 @@ RUN groupadd docker -g $GID &&\
     git \
     gcc \
     make \
+    cmake \
     openjdk-8-jdk-headless \
     ant \
     mtools \
@@ -82,7 +83,7 @@ RUN groupadd docker -g $GID &&\
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers &&\
     echo 'APT::Get::Assume-Yes "true";' >/etc/apt/apt.conf.d/90forceyes &&\
     chown -R docker /opt &&\
-    chown -R docker /tmp/rusefi-provide_gcc &&\
+    chown -R docker /tmp/rusefi-provide_gcc12 &&\
     update-alternatives --set java /usr/lib/jvm/temurin-11-jdk-amd64/bin/java
 
 # Install Docker CLI

@@ -1,5 +1,9 @@
 # rusefi-ci
 
+As of October 2024 it's still https://github.com/rusefi/rusefi/wiki/Dev-Quality-Control#hardware-continuous-integration
+
+Current status: abandoned?
+
 This dockerfile will automatically download and configure the github actions self-hosted runner
 
 To run, first build the image with:

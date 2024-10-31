@@ -58,21 +58,6 @@ else
         RUNNER_URL="${RUNNER_REPOSITORY_URL}"
     fi
 
-    if [[ -n $GITHUB_ACCESS_TOKEN ]]; then
-
-        echo "Exchanging the GitHub Access Token with a Runner Token (scope: ${SCOPE})..."
-
-        _PROTO="$(echo "${RUNNER_URL}" | grep :// | sed -e's,^\(.*://\).*,\1,g')"
-        _URL="$(echo "${RUNNER_URL/${_PROTO}/}")"
-        _PATH="$(echo "${_URL}" | grep / | cut -d/ -f2-)"
-
-        RUNNER_TOKEN="$(curl -XPOST -fsSL \
-            -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/${SCOPE}/${_PATH}/actions/runners/registration-token" \
-            | jq -r '.token')"
-    fi
-
     ./config.sh \
         --url $RUNNER_URL \
         --token $RUNNER_TOKEN \

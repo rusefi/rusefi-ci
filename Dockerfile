@@ -98,7 +98,7 @@ WORKDIR /opt
 
 USER docker
 
-RUN dockerd-rootless-setuptool.sh install
+RUN dockerd-rootless-setuptool.sh install --skip-iptables
 
 VOLUME /opt/actions-runner
 

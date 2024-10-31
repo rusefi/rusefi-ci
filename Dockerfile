@@ -1,6 +1,6 @@
 FROM ubuntu:22.04 AS builder
 
-ARG RUNNER_VERSION="2.312.0"
+ARG RUNNER_VERSION="2.314.1"
 
 WORKDIR /build
 
@@ -54,6 +54,7 @@ RUN groupadd docker -g $GID &&\
     xxd \
     usbutils \
     openocd \
+    gdb-multiarch \
     sudo \
     ruby-rubygems \
     time \
@@ -87,14 +88,9 @@ RUN groupadd docker -g $GID &&\
     update-alternatives --set java /usr/lib/jvm/temurin-11-jdk-amd64/bin/java
 
 # Install Docker CLI
-RUN curl -fsSL https://get.docker.com -o- | sh && \
+RUN curl -fsSL https://get.docker.com -o- | sh -s -- --version 24 && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
-
-# Install Docker-Compose
-RUN curl -L -o /usr/local/bin/docker-compose \
-    "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" && \
-    chmod +x /usr/local/bin/docker-compose
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf
@@ -103,7 +99,7 @@ WORKDIR /opt
 
 USER docker
 
-RUN dockerd-rootless-setuptool.sh install
+RUN dockerd-rootless-setuptool.sh install --skip-iptables
 
 VOLUME /opt/actions-runner
 

@@ -41,5 +41,4 @@ done
 # https://stackoverflow.com/questions/19661267/replace-spaces-with-underscores-via-bash
 OPT="${OPT// /-}"
 
-# TODO: pass to 04 script
-echo "hw-ci-$OPT"
+export RUNNER_NAME="hw-ci-$OPT"

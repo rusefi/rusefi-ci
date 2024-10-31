@@ -13,3 +13,4 @@ To start, run the `start.sh` script that is responsible for installing all the d
 Some steps, such as the selection of STLink/rusEFI board, were removed from the CI and moved to the creation of the runner as they are more static tasks.
 
 For details on how to obtain STLink IDs refer to:
+[Gethla](https://github.com/a-v-s/gethla) can automatically find your device and give you the fully escaped serial.

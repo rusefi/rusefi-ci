@@ -7,7 +7,7 @@ read -p "Enter the rusEFI board serial ID: " HARDWARE_CI_SERIAL
 read -p "Enter the STLink ID: " HARDWARE_CI_STLINK_SERIAL
 read -p "Enter the CI VBATT: " HARDWARE_CI_VBATT
 
-echo "go to: https://github.com/FDSoftware/rusefi/settings/actions/runners/new and get a new runner token"
+echo "go to: https://github.com/rusefi/rusefi/settings/actions/runners/new and get a new runner token"
 read -p "Enter your runner token: " RUNNER_TOKEN
 
 DOCKER_RUNNER_IMAGE=$(docker images | grep -ioh "\S*rusefi-ci\S*" | head -1)
@@ -18,20 +18,21 @@ if CONTAINER_HASH=$(docker container inspect $RUNNER_NAME --format "{{.Image}}" 
 else
     if docker container inspect "$RUNNER_NAME" >/dev/null 2>/dev/null; then
         echo "existing runner but there is a more recent base image, recreating"
+        docker stop "$RUNNER_NAME"
         docker rm "$RUNNER_NAME"
     fi
     if [ -n "$3" ]; then
-        MOUNT="-v $PWD/$3:/opt/actions-runner/rusefi-env:ro"
+        MOUNT="-v $PWD/$3:/opt/actions-runner/rusefi-env/$RUNNER_NAME:ro"
     fi
 
-    #TODO: remove references to personal repo
     docker run --name $RUNNER_NAME --detach --privileged --restart=unless-stopped $MOUNT \
         -e RUNNER_NAME="$RUNNER_NAME" \
-        -e RUNNER_LABELS="$LABEL" \
+        -e RUNNER_LABELS="$RUNNER_NAME" \
         -e RUNNER_TOKEN="$RUNNER_TOKEN" \
         -e HARDWARE_CI_SERIAL="$HARDWARE_CI_SERIAL" \
         -e HARDWARE_CI_STLINK_SERIAL="$HARDWARE_CI_STLINK_SERIAL" \
         -e HARDWARE_CI_VBATT="$HARDWARE_CI_VBATT" \
-        -e RUNNER_REPOSITORY_URL=https://github.com/FDSoftware/rusefi \
+        -e RUNNER_REPOSITORY_URL=https://github.com/rusefi/rusefi \
         "$DOCKER_RUNNER_IMAGE:main"
+
 fi

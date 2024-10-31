@@ -54,6 +54,7 @@ RUN groupadd docker -g $GID &&\
     xxd \
     usbutils \
     openocd \
+    gdb-multiarch \
     sudo \
     ruby-rubygems \
     time \

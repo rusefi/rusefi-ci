@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -e "/etc/udev/rules.d/70-rusefi.rules" ]; then
+if [ ! -e "/etc/udev/rules.d/70-rusefi.rules" ]; then
     echo "creating udev rules"
     cat >/etc/udev/rules.d/70-rusefi.rules <<EOL
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3748", GROUP="docker"

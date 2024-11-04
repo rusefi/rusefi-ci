@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if docker pull ghcr.io/fdsoftware/rusefi-ci:main; then
+if docker pull ghcr.io/rusefi/rusefi-ci:main; then
     echo "remote docker container pull succeeded"
 else
     echo "remote docker container pull failed, building image locally"
